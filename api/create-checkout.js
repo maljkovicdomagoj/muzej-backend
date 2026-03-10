@@ -2,13 +2,20 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 module.exports = async (req, res) => {
 
-  // Allow requests from Webflow
+  // CORS headers - mora biti prije svega ostalog
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // Handle preflight request
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
+  }
+
+  // Samo POST zahtjevi
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
@@ -23,7 +30,7 @@ module.exports = async (req, res) => {
       cancel_url: 'https://domagojs-beautiful-site-cd1c03.webflow.io/membership',
     });
 
-    res.json({ url: session.url });
+    res.status(200).json({ url: session.url });
 
   } catch (error) {
     console.error('Error:', error);
